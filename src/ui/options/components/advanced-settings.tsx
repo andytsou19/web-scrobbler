@@ -34,7 +34,7 @@ export default function AdvancedOptionsComponent() {
 					numberType="percent"
 					prefixi18n="optionScrobblePercent"
 					suffixi18n="optionScrobblePercentSuffix"
-					min={10}
+					min={.000001}
 					max={100}
 					key={Options.SCROBBLE_PERCENT}
 				/>
