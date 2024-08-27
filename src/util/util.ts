@@ -1,17 +1,20 @@
-import {
+import type {
 	ConnectorOptions,
 	ConnectorsOverrideOptions,
 	ConnectorsOverrideOptionValues,
 	GlobalOptions,
 	SavedEdit,
 } from '@/core/storage/options';
-import {
+import type {
 	ListenBrainzModel,
 	WebhookModel,
 	Properties,
 	StateManagement,
+	CacheScrobble,
+	BlockedTags,
+	Blocklists,
 } from '@/core/storage/wrapper';
-import { RegexEdit } from './regex';
+import type { RegexEdit } from './regex';
 
 /**
  * Module that contains some useful helper functions for background scripts.
@@ -137,7 +140,10 @@ export function hideObjectValue(
 		| ListenBrainzModel
 		| WebhookModel
 		| StateManagement
-		| RegexEdit[],
+		| RegexEdit[]
+		| CacheScrobble[]
+		| BlockedTags[]
+		| Blocklists,
 ): string {
 	if (!keyValue) {
 		if (keyValue === null) {
@@ -190,7 +196,7 @@ export function timeoutPromise<T>(
 				clearTimeout(timeoutId);
 				resolve(res);
 			},
-			(err) => {
+			(err: Error) => {
 				clearTimeout(timeoutId);
 				reject(err);
 			},
@@ -228,8 +234,11 @@ export function areAllResults<T>(results: T[], result: T): boolean {
  * @param text - The string to capitalize the first letter of
  * @returns The string with the first letter capitalized
  */
-export function capitalizeFirstLetter(text: string): string {
-	return text[0].toUpperCase() + text.slice(1);
+export function kebabCaseToPascalCase(text: string): string {
+	return text
+		.split('-')
+		.map((s) => s[0].toUpperCase() + s.slice(1))
+		.join('');
 }
 
 /**

@@ -33,7 +33,9 @@ Connector.getCurrentTime = () => {
 Connector.getDuration = () => {
 	switch (true) {
 		case cue && nextCue > 0:
-			0 > currentTime - cue && (nextCue += Math.abs(currentTime - cue));
+			if (0 > currentTime - cue) {
+				nextCue += Math.abs(currentTime - cue);
+			}
 			return nextCue - cue;
 		case nextCue > 0:
 			return nextCue;
@@ -45,7 +47,7 @@ Connector.getDuration = () => {
 Connector.isPlaying = () =>
 	Util.hasElementClass('#playerWidgetPause', 'fa-pause');
 
-Connector.isScrobblingAllowed = () => {
+Connector.scrobblingDisallowedReason = () => {
 	nextCue = parseInt(
 		Util.getAttrFromSelectors('.cPlay ~ .tlpTog input', 'value') ?? '',
 	);
@@ -57,5 +59,5 @@ Connector.isScrobblingAllowed = () => {
 		'mashupTrack',
 	);
 
-	return noIDs <= 0 && (cue > 0 || nextCue > 0) && !mashup;
+	return noIDs <= 0 && (cue > 0 || nextCue > 0) && !mashup ? null : 'Other';
 };

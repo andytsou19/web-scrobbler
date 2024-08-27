@@ -1,20 +1,15 @@
-import {
+import type {
 	Navigator,
 	NavigatorButton,
 	NavigatorButtonGroup,
 	NavigatorNavigationButton,
+} from '@/ui/options/components/navigator';
+import {
 	itemIsSingular,
 	triggerNavigationButton,
 } from '@/ui/options/components/navigator';
-import {
-	Accessor,
-	For,
-	Setter,
-	Show,
-	createMemo,
-	createSignal,
-	onMount,
-} from 'solid-js';
+import type { Accessor, Setter } from 'solid-js';
+import { For, Show, createMemo, createSignal, onMount } from 'solid-js';
 import styles from './context-menu.module.scss';
 import { t } from '@/util/i18n';
 
@@ -130,7 +125,9 @@ function ContextMenuItem(props: {
 				}}
 			>
 				<props.item.icon />
-				<label>{t(props.item.namei18n)}</label>
+				<label>
+					{t(props.item.namei18n, props.item.i18nSubstitution)}
+				</label>
 			</button>
 			<Show when={!itemIsSingular(props.item)}>
 				<dialog

@@ -1,11 +1,13 @@
 'use strict';
 
 import { ServiceCallResult } from '@/core/object/service-call-result';
-import { BaseSong } from '@/core/object/song';
+import type { BaseSong } from '@/core/object/song';
 import * as Util from '@/util/util';
 import { getExtensionVersion } from '@/util/util-browser';
-import BaseScrobbler, { SessionData } from '@/core/scrobbler/base-scrobbler';
-import {
+import type { SessionData } from '@/core/scrobbler/base-scrobbler';
+import BaseScrobbler from '@/core/scrobbler/base-scrobbler';
+import type {
+	ListenBrainzHTMLReactProps,
 	ListenBrainzParams,
 	ListenBrainzTrackMeta,
 	MetadataLookup,
@@ -16,7 +18,7 @@ import { sendContentMessage } from '@/util/communication';
  * Module for all communication with LB
  */
 
-const listenBrainzTokenPage = 'https://listenbrainz.org/profile/';
+const listenBrainzTokenPage = 'https://listenbrainz.org/settings/';
 const baseUrl = 'https://api.listenbrainz.org/1';
 const apiUrl = `${baseUrl}/submit-listens`;
 export default class ListenBrainzScrobbler extends BaseScrobbler<'ListenBrainz'> {
@@ -46,7 +48,7 @@ export default class ListenBrainzScrobbler extends BaseScrobbler<'ListenBrainz'>
 			await this.storage.set({ isAuthStarted: true });
 		}
 
-		return 'https://listenbrainz.org/login/musicbrainz?next=%2Fprofile%2F';
+		return 'https://listenbrainz.org/login/musicbrainz?next=%2Fsettings%2F';
 	}
 
 	/** @override */
@@ -108,7 +110,7 @@ export default class ListenBrainzScrobbler extends BaseScrobbler<'ListenBrainz'>
 		if (!data) {
 			this.debugLog('no data', 'error');
 			await this.signOut();
-			throw ServiceCallResult.ERROR_AUTH;
+			throw new Error(ServiceCallResult.ERROR_AUTH);
 		}
 
 		if ('isAuthStarted' in data && data.isAuthStarted) {
@@ -128,10 +130,10 @@ export default class ListenBrainzScrobbler extends BaseScrobbler<'ListenBrainz'>
 				this.debugLog('Failed to get session', 'warn');
 
 				await this.signOut();
-				throw ServiceCallResult.ERROR_AUTH;
+				throw new Error(ServiceCallResult.ERROR_AUTH);
 			}
 		} else if (!('sessionID' in data) || !data.sessionID) {
-			throw ServiceCallResult.ERROR_AUTH;
+			throw new Error(ServiceCallResult.ERROR_AUTH);
 		}
 
 		return {
@@ -181,19 +183,23 @@ export default class ListenBrainzScrobbler extends BaseScrobbler<'ListenBrainz'>
 	}
 
 	/** @override */
-	public async scrobble(song: BaseSong): Promise<ServiceCallResult> {
+	public async scrobble(
+		songs: BaseSong[],
+		currentlyPlaying: boolean,
+	): Promise<ServiceCallResult[]> {
 		const { sessionID } = await this.getSession();
 
 		const params = {
-			listen_type: 'single',
-			payload: [
-				{
-					listened_at: song.metadata.startTimestamp,
-					track_metadata: this.makeTrackMetadata(song),
-				},
-			],
+			listen_type: currentlyPlaying ? 'single' : 'import',
+			payload: songs.slice(0, 50).map((song) => ({
+				listened_at: song.metadata.startTimestamp,
+				track_metadata: this.makeTrackMetadata(song),
+			})),
 		} as ListenBrainzParams;
-		return this.sendScrobbleRequest(params, sessionID);
+		const res = await this.sendScrobbleRequest(params, sessionID);
+		return new Array<ServiceCallResult>(Math.min(songs.length, 50)).fill(
+			res,
+		);
 	}
 
 	/** @override */
@@ -278,9 +284,8 @@ export default class ListenBrainzScrobbler extends BaseScrobbler<'ListenBrainz'>
 		}
 
 		if (sessionID && requestInfo.headers) {
-			(
-				requestInfo.headers as Record<string, string>
-			).Authorization = `Token ${sessionID}`;
+			(requestInfo.headers as Record<string, string>).Authorization =
+				`Token ${sessionID}`;
 		}
 		const promise = fetch(url, requestInfo);
 		const timeout = this.REQUEST_TIMEOUT;
@@ -293,16 +298,16 @@ export default class ListenBrainzScrobbler extends BaseScrobbler<'ListenBrainz'>
 			result = (await response.json()) as T;
 		} catch (e) {
 			this.debugLog('Error while sending request', 'error');
-			throw ServiceCallResult.ERROR_OTHER;
+			throw new Error(ServiceCallResult.ERROR_OTHER);
 		}
 
 		switch (response.status) {
 			case 400:
 				this.debugLog('Invalid JSON sent', 'error');
-				throw ServiceCallResult.ERROR_AUTH;
+				throw new Error(ServiceCallResult.ERROR_AUTH);
 			case 401:
 				this.debugLog('Invalid Authorization sent', 'error');
-				throw ServiceCallResult.ERROR_AUTH;
+				throw new Error(ServiceCallResult.ERROR_AUTH);
 		}
 
 		this.debugLog(JSON.stringify(result, null, 2));
@@ -339,7 +344,7 @@ export default class ListenBrainzScrobbler extends BaseScrobbler<'ListenBrainz'>
 			return session;
 		}
 
-		throw ServiceCallResult.ERROR_AUTH;
+		throw new Error(ServiceCallResult.ERROR_AUTH);
 	}
 
 	private async fetchSession(url: string) {
@@ -354,28 +359,26 @@ export default class ListenBrainzScrobbler extends BaseScrobbler<'ListenBrainz'>
 					payload: {
 						url,
 					},
-			  });
+				});
 		const timeout = this.REQUEST_TIMEOUT;
 
-		// @ts-expect-error typescript is confused by the combination of ternary and promise wrapped promise. It's a skill issue on typescript's part.
 		const rawHtml = await Util.timeoutPromise(timeout, promise);
 
 		if (rawHtml !== null) {
-			const parser = new DOMParser();
+			let globalReactPropsJSON: ListenBrainzHTMLReactProps | null = null;
 
-			const doc = parser.parseFromString(rawHtml, 'text/html');
+			const globalReactPropsHTML = rawHtml.match(
+				/<script id="global-react-props" type="application\/json">(.*?)<\/script>/,
+			)?.[1];
 
-			let sessionName = null;
-			let sessionID = null;
-			const sessionNameEl = doc.querySelector('.page-title');
-			const sessionIdEl = doc.querySelector('#auth-token');
-
-			if (sessionNameEl) {
-				sessionName = sessionNameEl.textContent;
+			if (globalReactPropsHTML) {
+				globalReactPropsJSON = JSON.parse(
+					globalReactPropsHTML,
+				) as ListenBrainzHTMLReactProps;
 			}
-			if (sessionIdEl) {
-				sessionID = sessionIdEl.getAttribute('value');
-			}
+
+			const sessionName = globalReactPropsJSON?.current_user.name;
+			const sessionID = globalReactPropsJSON?.current_user.auth_token;
 
 			if (sessionID && sessionName) {
 				return { sessionID, sessionName };

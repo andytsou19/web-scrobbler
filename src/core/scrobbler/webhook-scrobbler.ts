@@ -1,18 +1,20 @@
 'use strict';
 
-import { BaseSong } from '@/core/object/song';
+import type { BaseSong } from '@/core/object/song';
 import BaseScrobbler from '@/core/scrobbler/base-scrobbler';
-import { SessionData } from './base-scrobbler';
+import type { SessionData } from './base-scrobbler';
 import { timeoutPromise } from '@/util/util';
 import { ServiceCallResult } from '../object/service-call-result';
-import ClonedSong from '../object/cloned-song';
+import type ClonedSong from '../object/cloned-song';
 
 type WebhookRequest = {
 	eventName: string;
 	time: number;
 	data: {
 		song: BaseSong;
+		songs?: BaseSong[];
 		isLoved?: boolean;
+		currentlyPlaying?: boolean;
 	};
 };
 
@@ -47,7 +49,7 @@ export default class WebhookScrobbler extends BaseScrobbler<'Webhook'> {
 	/** @override */
 	getSession(): Promise<SessionData> {
 		if (!this.arrayProperties || this.arrayProperties.length === 0) {
-			return Promise.reject('');
+			return Promise.reject(new Error(''));
 		}
 		// Webhook connection doesn't have a session.
 		return Promise.resolve({ sessionID: 'webhook' });
@@ -146,12 +148,21 @@ export default class WebhookScrobbler extends BaseScrobbler<'Webhook'> {
 	}
 
 	/** @override */
-	public async scrobble(song: BaseSong): Promise<ServiceCallResult> {
-		return this.sendRequest({
+	public async scrobble(
+		songs: BaseSong[],
+		currentlyPlaying: boolean,
+	): Promise<ServiceCallResult[]> {
+		const res = await this.sendRequest({
 			eventName: 'scrobble',
 			time: Date.now(),
-			data: { song },
+			// send the first song as a separate argument to avoid breaking older implementations
+			data: {
+				song: songs[0],
+				songs,
+				currentlyPlaying,
+			},
 		});
+		return new Array<ServiceCallResult>(songs.length).fill(res);
 	}
 
 	/** @override */

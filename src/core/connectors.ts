@@ -4,6 +4,16 @@ export interface ConnectorMeta {
 	js: string;
 	id: string;
 	allFrames?: true;
+
+	/**
+	 * true if connector uses blocklist. Connector must implement {@link Connector.getChannelId}
+	 */
+	usesBlocklist?: true;
+
+	/**
+	 * true if website has its own scrobbling system the user needs to be aware of.
+	 */
+	hasNativeScrobbler?: true;
 }
 
 export default <ConnectorMeta[]>[
@@ -12,6 +22,7 @@ export default <ConnectorMeta[]>[
 		matches: ['*://www.youtube.com/*', '*://m.youtube.com/*'],
 		js: 'youtube.js',
 		id: 'youtube',
+		usesBlocklist: true,
 	},
 	{
 		label: 'MySpace',
@@ -38,6 +49,12 @@ export default <ConnectorMeta[]>[
 		js: 'bndcmpr.js',
 		id: 'bndcmpr',
 		allFrames: true,
+	},
+	{
+		label: 'Buy Music Club',
+		matches: ['*://www.buymusic.club/*'],
+		js: 'buymusicclub.js',
+		id: 'buymusicclub',
 	},
 	{
 		label: 'Pandora',
@@ -113,6 +130,7 @@ export default <ConnectorMeta[]>[
 		matches: ['*://open.spotify.com/*'],
 		js: 'spotify.js',
 		id: 'spotify',
+		hasNativeScrobbler: true,
 	},
 	{
 		label: 'plug.dj',
@@ -137,6 +155,17 @@ export default <ConnectorMeta[]>[
 		matches: ['*://8tracks.com/*'],
 		js: '8tracks.js',
 		id: '8tracks',
+	},
+	{
+		label: 'Radio Cidade',
+		matches: [
+			'*://radiocidade.fm/player/*',
+			'*://play.radiomania.com.br/*',
+			'*://*.melodia.com.br/*',
+			'*://jb.fm/player/*',
+		],
+		js: 'radiocidade.js',
+		id: 'radiocidade',
 	},
 	{
 		label: 'Radio Nova',
@@ -258,7 +287,7 @@ export default <ConnectorMeta[]>[
 	},
 	{
 		label: 'Online Radio Box',
-		matches: ['*://onlineradiobox.com/*'],
+		matches: ['*://onlineradiobox.com/*', '*://p.onlineradiobox.com/*'],
 		js: 'onlineradiobox.js',
 		id: 'onlineradiobox',
 	},
@@ -791,10 +820,10 @@ export default <ConnectorMeta[]>[
 		id: 'listenlive',
 	},
 	{
-		label: 'Planet Radio',
+		label: 'Rayo',
 		matches: [
-			'*://planetradio.co.uk/*/play/*',
-			'*://planetradio.co.uk/*/player/*',
+			'*://hellorayo.co.uk/*/play/*',
+			'*://hellorayo.co.uk/*/player/*',
 		],
 		js: 'planetradio.js',
 		id: 'planetradio',
@@ -849,6 +878,12 @@ export default <ConnectorMeta[]>[
 		id: 'deltaradio.de',
 	},
 	{
+		label: 'Radio Bob',
+		matches: ['*://*.radiobob.de/*'],
+		js: 'radiobob.js',
+		id: 'radiobob',
+	},
+	{
 		label: 'ByteFM',
 		matches: ['*://www.byte.fm/*'],
 		js: 'byte.fm.js',
@@ -862,7 +897,7 @@ export default <ConnectorMeta[]>[
 	},
 	{
 		label: 'QQ Music',
-		matches: ['*://y.qq.com/portal/*'],
+		matches: ['*://y.qq.com/*'],
 		js: 'qq-music.js',
 		id: 'qq-music',
 	},
@@ -1038,7 +1073,11 @@ export default <ConnectorMeta[]>[
 	},
 	{
 		label: 'SiriusXM',
-		matches: ['*://player.siriusxm.com/*', '*://player.siriusxm.ca/*'],
+		matches: [
+			'*://www.siriusxm.com/*',
+			'*://www.siriusxm.ca/*',
+			'*://*.siriusxm.com/player/*',
+		],
 		js: 'siriusxm-player.js',
 		id: 'siriusxm-player',
 	},
@@ -1145,12 +1184,6 @@ export default <ConnectorMeta[]>[
 		matches: ['*://aphextwin.warp.net/*'],
 		js: 'warp-aphextwin.js',
 		id: 'warp-aphextwin',
-	},
-	{
-		label: 'Resident Advisor',
-		matches: ['*://www.residentadvisor.net/*'],
-		js: 'residentadvisor.js',
-		id: 'residentadvisor',
 	},
 	{
 		label: 'Zachary Seguin Music',
@@ -1686,9 +1719,9 @@ export default <ConnectorMeta[]>[
 		id: 'coderadio',
 	},
 	{
-		label: 'Dash Radio',
-		matches: ['*://dashradio.com/*'],
-		js: 'dashradio.js',
+		label: 'LITT Live',
+		matches: ['*://littlive.com/*'],
+		js: 'littlive.js',
 		id: 'dashradio',
 	},
 	{
@@ -1714,6 +1747,7 @@ export default <ConnectorMeta[]>[
 			'*://deepcut.fm/*',
 			'*://turntable.fm/*',
 			'*://deep-cut.fm/*',
+			'*://deepcuts.fm/*',
 		],
 		js: 'deep-cut.fm.js',
 		id: 'deepcut.fm',
@@ -2192,6 +2226,18 @@ export default <ConnectorMeta[]>[
 		id: 'technobase.fm',
 	},
 	{
+		label: 'Telegram A',
+		matches: ['*://web.telegram.org/a/*'],
+		js: 'telegram-a.js',
+		id: 'telegram-a',
+	},
+	{
+		label: 'Telegram K',
+		matches: ['*://web.telegram.org/k/*'],
+		js: 'telegram-k.js',
+		id: 'telegram-k',
+	},
+	{
 		label: 'TuneGenieEmbed',
 		matches: ['*://b3.tunegenie.com/*'],
 		js: 'tunegenie-embed.js',
@@ -2206,7 +2252,7 @@ export default <ConnectorMeta[]>[
 	},
 	{
 		label: 'RTL+ Musik',
-		matches: ['*://plus.rtl.de/musik/*'],
+		matches: ['*://plus.rtl.de/*'],
 		js: 'rtl-plus-musik.js',
 		id: 'rtl-plus-musik',
 	},
@@ -2299,5 +2345,234 @@ export default <ConnectorMeta[]>[
 		matches: ['*://*.vk-save.com/*'],
 		js: 'vk-save.js',
 		id: 'vk-save',
+	},
+	{
+		label: 'Radio Student',
+		matches: ['*://www.radiostudent.hr/*'],
+		js: 'radiostudent.js',
+		id: 'radiostudent',
+	},
+	{
+		label: 'BiliBili',
+		matches: ['*://www.bilibili.com/*'],
+		js: 'bilibili.js',
+		id: 'bilibili',
+		usesBlocklist: true,
+	},
+	{
+		label: 'jam.coop',
+		matches: ['*://jam.coop/*'],
+		js: 'jam.coop.js',
+		id: 'jam.coop',
+	},
+	{
+		label: 'Zing MP3',
+		matches: ['*://zingmp3.vn/*'],
+		js: 'zingmp3.js',
+		id: 'zingmp3',
+	},
+	{
+		label: 'NTS Live',
+		matches: ['*://*nts.live/live-tracklist/*'],
+		js: 'nts-live.js',
+		id: 'nts-live',
+	},
+	{
+		label: 'NTS Shows',
+		matches: [
+			'*://*nts.live/',
+			'*://*nts.live/latest*',
+			'*://*nts.live/shows*',
+			'*://*nts.live/explore*',
+			'*://*nts.live/infinite-mixtapes*',
+			'*://*nts.live/radio*',
+			'*://*nts.live/supporters*',
+			'*://*nts.live/my-nts*',
+			'*://*nts.live/events*',
+			'*://*nts.live/videos*',
+			'*://*nts.live/incoming*',
+			'*://*nts.live/about*',
+		],
+		js: 'nts-shows.js',
+		id: 'nts-shows',
+	},
+	{
+		label: 'earth.fm',
+		matches: ['*://earth.fm/*'],
+		js: 'earth.fm.js',
+		id: 'earthfm',
+	},
+	{
+		label: "apt-get's auditorium",
+		matches: ['*://tunes.apt-get.xyz/*'],
+		js: 'apt-get-tunes.js',
+		id: 'apt-get-tunes',
+	},
+	{
+		label: 'AzuraCast',
+		js: 'azuracast.js',
+		id: 'azuracast',
+	},
+	{
+		label: 'scrobblerad.io',
+		matches: ['*://scrobblerad.io/*'],
+		js: 'scrobbleradio.js',
+		id: 'scrobbleradio',
+	},
+	{
+		label: 'weareone.fm',
+		matches: ['*://weareone.fm/*'],
+		js: 'weareone.js',
+		id: 'weareone',
+	},
+	{
+		label: 'Bollerwagen',
+		matches: ['*://radiobollerwagen.de/*'],
+		js: 'bollerwagen.js',
+		id: 'bollerwagen',
+	},
+	{
+		label: 'МТС Музыка',
+		matches: ['*://music.mts.ru/*'],
+		js: 'mts-music.js',
+		id: 'mts-music',
+	},
+	{
+		label: 'ChirpRadio',
+		matches: ['*://chirpradio.org/*'],
+		js: 'chirpradio.js',
+		id: 'chirpradio',
+	},
+	{
+		label: 'InstantAudio',
+		matches: [
+			'*://instant.audio/*',
+			// North America
+			'*://radiosdecuba.com/*',
+			'*://radio.ht/*',
+			'*://jamaicaradio.net/*',
+			'*://emisoras.com.mx/*',
+			'*://radiosdepuertorico.com/*',
+			'*://radios.com.do/*',
+			'*://trinidadradiostations.net/*',
+			// Central America
+			'*://radios.co.cr/*',
+			'*://radios.com.sv/*',
+			'*://emisoras.com.gt/*',
+			'*://radios.hn/*',
+			'*://radios.co.ni/*',
+			'*://radios.com.pa/*',
+			// South America
+			'*://radioarg.com/*',
+			'*://radios.com.bo/*',
+			'*://radiosaovivo.net/*',
+			'*://emisora.cl/*',
+			'*://radios.com.co/*',
+			'*://radios.com.ec/*',
+			'*://emisoras.com.py/*',
+			'*://radios.com.pe/*',
+			'*://surinaamseradio.com/*',
+			'*://radios.com.uy/*',
+			'*://radio.co.ve/*',
+			// Europe
+			'*://radiosonline.be/*',
+			'*://ceskaradiaonline.cz/*',
+			'*://radio.co.dk/*',
+			'*://radiolisten.de/*',
+			'*://raadiod.com/*',
+			'*://emisora.org.es/*',
+			'*://ecouterradioenligne.com/*',
+			'*://radiofona.com.gr/*',
+			'*://radios.hr/*',
+			'*://ieradio.org/*',
+			'*://ascoltareradio.com/*',
+			'*://latvijasradio.com/*',
+			'*://radios.lu/*',
+			'*://radijas.org/*',
+			'*://radiohallgatas.hu/*',
+			'*://nederlandseradio.nl/*',
+			'*://nettradionorge.com/*',
+			'*://radios.co.at/*',
+			'*://onlineradio.pl/*',
+			'*://radioonline.com.pt/*',
+			'*://radio.org.ro/*',
+			'*://radiosonline.ch/*',
+			'*://siradio.si/*',
+			'*://radiostanice.rs/*',
+			'*://nettiradiot.org/*',
+			'*://radio.org.se/*',
+			'*://internetradiouk.com/*',
+			'*://bg-radio.org/*',
+			'*://radio.pp.ru/*',
+			'*://radioua.net/*',
+			// Africa
+			'*://radioalgerie.eu/*',
+			'*://radio.co.cm/*',
+			'*://radio.cd/*',
+			'*://radio.co.ci/*',
+			'*://radio.com.gh/*',
+			'*://radio.or.ke/*',
+			'*://radio.mg/*',
+			'*://radio.co.ma/*',
+			'*://egyptradio.net/*',
+			'*://radio.org.ng/*',
+			'*://radio.sn/*',
+			'*://radiosa.org/*',
+			'*://radiotunisienne.org/*',
+			'*://radio.co.ug/*',
+			// Asia
+			'*://radio-bd.com/*',
+			'*://radioonline.kr/*',
+			'*://radios.hk/*',
+			'*://onlineradios.in/*',
+			'*://radioonline.co.id/*',
+			'*://radioonline.my/*',
+			'*://radionp.com/*',
+			'*://jpradio.jp/*',
+			'*://radio.net.pk/*',
+			'*://radio.org.ph/*',
+			'*://radiosingapore.org/*',
+			'*://radio.com.lk/*',
+			'*://vietnamradio.org/*',
+			'*://radios.org.il/*',
+			'*://radioth.net/*',
+			'*://zhibo.fm/*',
+			'*://radios.tw/*',
+			// Oceania
+			'*://radioau.net/*',
+			'*://radio.org.nz/*',
+		],
+		js: 'instantaudio.js',
+		id: 'instantaudio',
+	},
+	{
+		label: 'Basspistol Radio',
+		matches: ['*://*.basspistol.com/*'],
+		js: 'basspistol.js',
+		id: 'basspistol',
+	},
+	{
+		label: 'RadioFreeFedi',
+		matches: ['*://radiofreefedi.net/*'],
+		js: 'radiofreefedi.js',
+		id: 'radiofreefedi',
+	},
+	{
+		label: 'MyTuner',
+		matches: ['*://mytuner-radio.com/*'],
+		js: 'mytuner.js',
+		id: 'mytuner',
+	},
+	{
+		label: 'Mirlo',
+		matches: ['*://mirlo.space/*'],
+		js: 'mirlo.js',
+		id: 'mirlo',
+	},
+	{
+		label: 'Simulator Radio',
+		matches: ['*://*.simulatorradio.com/*'],
+		js: 'simulatorradio.js',
+		id: 'simulatorradio',
 	},
 ];

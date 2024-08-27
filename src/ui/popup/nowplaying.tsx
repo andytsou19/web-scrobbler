@@ -1,11 +1,8 @@
 import { t } from '@/util/i18n';
 import styles from './popup.module.scss';
+import type { Accessor, JSXElement, Resource, Setter } from 'solid-js';
 import {
-	Accessor,
-	JSXElement,
 	Match,
-	Resource,
-	Setter,
 	Show,
 	Switch,
 	createEffect,
@@ -15,16 +12,18 @@ import {
 	onCleanup,
 	onMount,
 } from 'solid-js';
-import { ManagerTab } from '@/core/storage/wrapper';
+import type { ManagerTab } from '@/core/storage/wrapper';
 import browser from 'webextension-polyfill';
 import ClonedSong from '@/core/object/cloned-song';
 import Base from './base';
 import { LastFMIcon } from '@/util/icons';
-import Edit from '@suid/icons-material/EditOutlined';
-import Block from '@suid/icons-material/BlockOutlined';
-import Favorite from '@suid/icons-material/FavoriteOutlined';
-import HeartBroken from '@suid/icons-material/HeartBrokenOutlined';
-import RestartAlt from '@suid/icons-material/RestartAltOutlined';
+import {
+	EditOutlined,
+	BlockOutlined,
+	FavoriteOutlined,
+	HeartBrokenOutlined,
+	RestartAltOutlined,
+} from '@/ui/components/icons';
 import { sendBackgroundMessage } from '@/util/communication';
 import * as ControllerMode from '@/core/object/controller/controller-mode';
 import EditComponent from './edit';
@@ -35,13 +34,11 @@ import {
 	createTrackURL,
 } from '@/util/util';
 import scrobbleService from '@/core/object/scrobble-service';
-import { SessionData } from '@/core/scrobbler/base-scrobbler';
+import type { SessionData } from '@/core/scrobbler/base-scrobbler';
 import { PopupAnchor, Squircle, isIos } from '../components/util';
 import ContextMenu from '../components/context-menu/context-menu';
-import {
-	Navigator,
-	getMobileNavigatorGroup,
-} from '../options/components/navigator';
+import type { Navigator } from '../options/components/navigator';
+import { getMobileNavigatorGroup } from '../options/components/navigator';
 
 /**
  * Component showing info for currently playing song if there is one
@@ -165,26 +162,26 @@ function NowPlayingContextMenu(props: {
 		const items: Navigator = [
 			{
 				namei18n:
-					props.tab()?.mode === ControllerMode.Playing
+					props.tab()?.permanentMode === ControllerMode.Playing
 						? 'infoEditTitleShort'
 						: 'infoEditUnableTitleShort',
-				icon: Edit,
+				icon: EditOutlined,
 				action: () => props.setIsEditing(true),
 			},
 		];
 		if (props.song()?.flags.isCorrectedByUser) {
 			items.push({
 				namei18n:
-					props.tab()?.mode === ControllerMode.Playing
+					props.tab()?.permanentMode === ControllerMode.Playing
 						? 'infoRevertTitleShort'
 						: 'infoRevertUnableTitleShort',
-				icon: RestartAlt,
+				icon: RestartAltOutlined,
 				action: () => actionResetSongData(props.tab),
 			});
 		}
 		items.push({
 			namei18n: getSkipLabel(props.tab, true),
-			icon: Block,
+			icon: BlockOutlined,
 			action: () => actionSkipCurrentSong(props.tab),
 		});
 		if (!navigatorResource.loading) {
@@ -244,7 +241,7 @@ function IOSLoveTrack(props: {
 					: t('infoLove')
 			}
 		>
-			<Favorite />
+			<FavoriteOutlined />
 		</button>
 	);
 }
@@ -320,7 +317,7 @@ function TrackMetadata(props: { song: Accessor<ClonedSong | null> }) {
 				<LastFMIcon />
 				{props.song()?.metadata.userPlayCount || 0}
 			</PopupLink>
-			<span class={styles.label}>{props.song()?.connectorLabel}</span>
+			<span class={styles.label}>{props.song()?.connector.label}</span>
 		</div>
 	);
 }
@@ -337,45 +334,47 @@ function TrackControls(props: {
 		<div class={styles.controlButtons}>
 			<button
 				class={styles.controlButton}
-				disabled={props.tab()?.mode !== ControllerMode.Playing}
+				disabled={props.tab()?.permanentMode !== ControllerMode.Playing}
 				title={
-					props.tab()?.mode === ControllerMode.Playing
+					props.tab()?.permanentMode === ControllerMode.Playing
 						? t('infoEditTitle')
 						: t('infoEditUnableTitle')
 				}
 				onClick={() => props.setIsEditing(true)}
 			>
-				<Edit />
+				<EditOutlined />
 			</button>
 			<Show when={props.song()?.flags.isCorrectedByUser}>
 				<button
 					class={styles.controlButton}
-					disabled={props.tab()?.mode !== ControllerMode.Playing}
+					disabled={
+						props.tab()?.permanentMode !== ControllerMode.Playing
+					}
 					title={
-						props.tab()?.mode === ControllerMode.Playing
+						props.tab()?.permanentMode === ControllerMode.Playing
 							? t('infoRevertTitle')
 							: t('infoRevertUnableTitle')
 					}
 					onClick={() => actionResetSongData(props.tab)}
 				>
-					<RestartAlt />
+					<RestartAltOutlined />
 				</button>
 			</Show>
 			<button
 				class={`${styles.controlButton}${
-					props.tab()?.mode !== ControllerMode.Scrobbled
+					props.tab()?.permanentMode !== ControllerMode.Scrobbled
 						? ` ${styles.hiddenDisabled}`
 						: ''
 				}${
-					props.tab()?.mode === ControllerMode.Skipped
+					props.tab()?.permanentMode === ControllerMode.Skipped
 						? ` ${styles.active}`
 						: ''
 				}`}
-				disabled={props.tab()?.mode !== ControllerMode.Playing}
+				disabled={props.tab()?.permanentMode !== ControllerMode.Playing}
 				onClick={() => actionSkipCurrentSong(props.tab)}
 				title={t(getSkipLabel(props.tab, false))}
 			>
-				<Block />
+				<BlockOutlined />
 			</button>
 			<button
 				class={`${styles.controlButton}${
@@ -389,14 +388,14 @@ function TrackControls(props: {
 				}
 			>
 				<span class={styles.nonHover}>
-					<Favorite />
+					<FavoriteOutlined />
 				</span>
 				<span class={styles.hover}>
 					<Show
 						when={props.song()?.metadata.userloved}
-						fallback={<Favorite />}
+						fallback={<FavoriteOutlined />}
 					>
-						<HeartBroken />
+						<HeartBrokenOutlined />
 					</Show>
 				</span>
 			</button>
@@ -433,7 +432,7 @@ function PopupLink(props: {
  */
 function getSkipLabel(tab: Resource<ManagerTab>, isShort: boolean): string {
 	let res = 'infoSkipUnableTitle';
-	switch (tab()?.mode) {
+	switch (tab()?.permanentMode) {
 		case ControllerMode.Playing:
 			res = 'infoSkipTitle';
 			break;
@@ -484,6 +483,7 @@ function toggleLove(
 		type: 'toggleLove',
 		payload: {
 			isLoved: !song()?.metadata.userloved,
+			shouldShowNotification: false,
 		},
 	});
 }

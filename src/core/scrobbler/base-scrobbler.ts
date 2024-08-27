@@ -1,18 +1,18 @@
 'use strict';
 
-import { DebugLogType, debugLog } from '@/util/util';
-import { BaseSong } from '@/core/object/song';
-import { ServiceCallResult } from '@/core/object/service-call-result';
-import StorageWrapper, {
+import type { DebugLogType } from '@/util/util';
+import { debugLog } from '@/util/util';
+import type { BaseSong } from '@/core/object/song';
+import type { ServiceCallResult } from '@/core/object/service-call-result';
+import type {
 	ArrayProperties,
 	ArrayProperty,
 	ScrobblerModels,
 } from '@/core/storage/wrapper';
-import {
-	StorageNamespace,
-	getScrobblerStorage,
-} from '../storage/browser-storage';
-import ClonedSong from '../object/cloned-song';
+import type StorageWrapper from '@/core/storage/wrapper';
+import type { StorageNamespace } from '../storage/browser-storage';
+import { getScrobblerStorage } from '../storage/browser-storage';
+import type ClonedSong from '../object/cloned-song';
 import {
 	backgroundListener,
 	setupBackgroundListeners,
@@ -331,13 +331,16 @@ export default abstract class BaseScrobbler<K extends keyof ScrobblerModels> {
 	public abstract sendPaused(song: BaseSong): Promise<ServiceCallResult>;
 
 	/**
-	 * Send song to API to scrobble.
+	 * Send songs to API to scrobble.
 	 * Implementation must return ServiceCallResult constant.
 	 *
-	 * @param song - Song instance
+	 * @param song - Song instances
 	 */
 	// eslint-disable-next-line no-unused-vars
-	public abstract scrobble(song: BaseSong): Promise<ServiceCallResult>;
+	public abstract scrobble(
+		song: BaseSong[],
+		currentlyPlaying: boolean,
+	): Promise<ServiceCallResult[]>;
 
 	/**
 	 * Love or unlove given song.
@@ -378,7 +381,8 @@ export default abstract class BaseScrobbler<K extends keyof ScrobblerModels> {
 		| 'ListenBrainz'
 		| 'Maloja'
 		| 'Libre.fm'
-		| 'Webhook';
+		| 'Webhook'
+		| 'Pleroma';
 
 	/**
 	 * Get URL to profile page.

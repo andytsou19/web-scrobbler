@@ -3,16 +3,21 @@ import path from 'path';
 
 import { expect, assert, describe, it } from 'vitest';
 
-import connectors, { ConnectorMeta } from '@/core/connectors';
+import type { ConnectorMeta } from '@/core/connectors';
+import connectors from '@/core/connectors';
 import * as UrlMatch from '@/util/url-match';
 
 const PROP_TYPES: {
+	usesBlocklist: 'boolean';
+	hasNativeScrobbler: 'boolean';
 	allFrames: 'boolean';
 	matches: 'array';
 	label: 'string';
 	js: 'string';
 	id: 'string';
 } = {
+	usesBlocklist: 'boolean',
+	hasNativeScrobbler: 'boolean',
 	allFrames: 'boolean',
 	matches: 'array',
 	label: 'string',

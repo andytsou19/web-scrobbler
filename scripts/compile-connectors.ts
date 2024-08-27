@@ -1,5 +1,5 @@
 import { exec } from 'child_process';
-import { PluginOption } from 'vite';
+import type { PluginOption } from 'vite';
 import fs from 'fs-extra';
 import colorLog from './log';
 import { getBrowser } from './util';
@@ -8,18 +8,18 @@ import chokidar from 'chokidar';
 /**
  * Sends the actual command to typescript to compile connectors, and places them where they should be.
  *
- * @returns A promise that resolves when the conenctors are compiled
+ * @returns A promise that resolves when the connectors are compiled
  */
 function generateConnectors() {
 	return new Promise<void>((resolve, reject) => {
 		exec(
-			'tsc --project tsconfig.connectors.json',
+			'esbuild src/connectors/*.ts --bundle --outdir=build/connectorraw --tsconfig=tsconfig.connectors.json',
 			(err, stdout, stderr) => {
 				if (err) {
 					colorLog(err, 'error');
 					colorLog(stdout, 'info');
 					colorLog(stderr, 'error');
-					reject();
+					reject(new Error());
 					return;
 				}
 				colorLog('Connector file compilation complete', 'success');
@@ -27,7 +27,7 @@ function generateConnectors() {
 				try {
 					fs.removeSync(`build/${getBrowser()}/connectors`);
 					fs.moveSync(
-						'build/connectorraw/connectors',
+						'build/connectorraw',
 						`build/${getBrowser()}/connectors`,
 					);
 					fs.removeSync('build/connectorraw');
@@ -35,7 +35,7 @@ function generateConnectors() {
 					resolve();
 				} catch (err) {
 					colorLog(err, 'error');
-					reject();
+					reject(new Error());
 				}
 			},
 		);

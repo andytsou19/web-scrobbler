@@ -1,13 +1,14 @@
-import { For, Resource, ResourceActions, Show, createResource } from 'solid-js';
+import type { Resource, ResourceActions } from 'solid-js';
+import { For, Show, createResource } from 'solid-js';
 import * as Options from '@/core/storage/options';
 import * as BrowserStorage from '@/core/storage/browser-storage';
 import browser from 'webextension-polyfill';
 import { GlobalOptionEntry } from '../inputs';
 import styles from '../components.module.scss';
 import { t } from '@/util/i18n';
-import { capitalizeFirstLetter, debugLog } from '@/util/util';
+import { debugLog, kebabCaseToPascalCase } from '@/util/util';
+import type { ModifiedTheme } from '@/theme/themes';
 import {
-	ModifiedTheme,
 	getTheme,
 	modifiedThemeList,
 	themeList,
@@ -65,6 +66,14 @@ export default function GlobalOptionsList(props: {
 					i18nlabel="optionScrobblePodcasts"
 					key={Options.SCROBBLE_PODCASTS}
 				/>
+				<GlobalOptionEntry
+					options={props.options}
+					setOptions={props.setOptions}
+					globalOptions={globalOptions}
+					i18ntitle="optionAutoToggleLoveTitle"
+					i18nlabel="optionAutoToggleLove"
+					key={Options.AUTO_TOGGLE_LOVE}
+				/>
 			</ul>
 		</>
 	);
@@ -105,7 +114,7 @@ function ThemeSelector() {
 						{(themeName) => (
 							<option value={`theme-${themeName}`}>
 								{t(
-									`optionTheme${capitalizeFirstLetter(
+									`optionTheme${kebabCaseToPascalCase(
 										themeName,
 									)}`,
 								)}
